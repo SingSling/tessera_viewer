@@ -21,8 +21,8 @@ Needs **Python 3.12 or newer**. The default area, Frankfurt am Main
 (20 × 20 km), needs about 0.6 GB of disk and RAM per year.
 
 ```bash
-git clone https://github.com/SingSling/tessera-explorer.git
-cd tessera-explorer
+git clone https://github.com/SingSling/tessera_viewer.git
+cd tessera_viewer
 ```
 
 **With [uv](https://docs.astral.sh/uv/)** (recommended; it fetches Python 3.12
