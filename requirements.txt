@@ -1,0 +1,5 @@
+geotessera>=0.11.0
+numpy>=1.26
+pyproj>=3.6
+scikit-learn>=1.5
+matplotlib>=3.8

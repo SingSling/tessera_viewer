@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Embedding Explorer</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<aside id="side">
+  <header>
+    <h1>Embedding explorer</h1>
+    <p id="region-name" class="muted">loading…</p>
+  </header>
+
+  <section class="row">
+    <label for="year">Year</label>
+    <select id="year"></select>
+  </section>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" data-mode="rgb" class="active">RGB composite</button>
+    <button role="tab" data-mode="sim">Similarity</button>
+  </nav>
+
+  <!-- RGB composite -->
+  <div id="panel-rgb" class="panel">
+    <section>
+      <div class="label">Source</div>
+      <div class="seg" id="rgb-source">
+        <button data-v="pca" class="active">PCA components</button>
+        <button data-v="dims">Raw dimensions</button>
+      </div>
+    </section>
+
+    <section id="pca-scope-sec">
+      <div class="label">PCA fitted on</div>
+      <div class="seg" id="pca-scope">
+        <button data-v="region" class="active">Whole region</button>
+        <button data-v="view">Current view</button>
+      </div>
+      <button id="refit" class="btn small" hidden>Refit to current view</button>
+      <p class="hint">“Current view” refits the PCA on just the pixels you see, which gives far more contrast between similar fields.</p>
+    </section>
+
+    <section>
+      <div class="label">Channels</div>
+      <div class="chan"><span class="sw r"></span><label for="ch-r">R</label><select id="ch-r"></select><input id="dim-r" type="number" min="0" max="127" value="0"></div>
+      <div class="chan"><span class="sw g"></span><label for="ch-g">G</label><select id="ch-g"></select><input id="dim-g" type="number" min="0" max="127" value="1"></div>
+      <div class="chan"><span class="sw b"></span><label for="ch-b">B</label><select id="ch-b"></select><input id="dim-b" type="number" min="0" max="127" value="2"></div>
+      <div class="btnrow">
+        <button id="shuffle" class="btn small">Random channels</button>
+        <button id="reset-ch" class="btn small">Reset to 1-2-3</button>
+      </div>
+      <div id="ev" class="ev"></div>
+    </section>
+
+    <section>
+      <div class="label">Colour stretch</div>
+      <div class="seg" id="stretch">
+        <button data-v="hist" class="active">Equalise</button>
+        <button data-v="pct">Percentile</button>
+        <button data-v="std">±2.5 σ</button>
+      </div>
+      <div id="pct-controls" class="pct" hidden>
+        <label>low <input id="p-lo" type="number" min="0" max="49" step="0.5" value="2"></label>
+        <label>high <input id="p-hi" type="number" min="51" max="100" step="0.5" value="98"></label>
+      </div>
+    </section>
+  </div>
+
+  <!-- Similarity -->
+  <div id="panel-sim" class="panel" hidden>
+    <p class="hint lead"><b>Click</b> a pixel to compare every other pixel with it. <b>Shift+click</b> adds more pixels (their average is used).</p>
+
+    <section>
+      <div class="label">Reference pixels <button id="clear-refs" class="link">clear</button></div>
+      <div id="refs" class="refs"><span class="muted">none yet</span></div>
+    </section>
+
+    <section>
+      <div class="label">Sample around each click</div>
+      <div class="seg" id="win">
+        <button data-v="0" class="active">1 px</button>
+        <button data-v="1">3×3</button>
+        <button data-v="2">5×5</button>
+        <button data-v="5">11×11</button>
+      </div>
+      <label class="check"><input type="checkbox" id="lock-year" checked> Keep reference from the year it was picked</label>
+      <p class="hint">On: switching year searches for that same signature in the new year. Off: re-reads the reference pixels in the new year.</p>
+    </section>
+
+    <section>
+      <div class="label">Distribution of similarity</div>
+      <div class="histwrap">
+        <canvas id="hist" width="300" height="96"></canvas>
+        <div id="hist-tip" class="tip" hidden></div>
+      </div>
+      <div class="axis"><span id="ax-lo"></span><span>cosine similarity</span><span id="ax-hi"></span></div>
+      <p id="sim-stats" class="stats"></p>
+    </section>
+
+    <section>
+      <div class="sliderrow">
+        <label for="thr">Hide below</label>
+        <input id="thr" type="range" min="-1" max="1" step="0.005" value="-1">
+        <output id="thr-v">off</output>
+      </div>
+      <div class="sliderrow">
+        <label for="lo">Colour min</label>
+        <input id="lo" type="range" min="-1" max="1" step="0.005" value="0">
+        <output id="lo-v"></output>
+      </div>
+      <div class="sliderrow">
+        <label for="hi">Colour max</label>
+        <input id="hi" type="range" min="-1" max="1" step="0.005" value="1">
+        <output id="hi-v"></output>
+      </div>
+      <div class="btnrow">
+        <button id="auto-range" class="btn small">Auto range</button>
+        <select id="cmap" aria-label="Colour map"></select>
+      </div>
+    </section>
+  </div>
+
+  <!-- Display -->
+  <div class="panel display">
+    <div class="sliderrow">
+      <label for="opacity">Overlay opacity</label>
+      <input id="opacity" type="range" min="0" max="1" step="0.05" value="0.9">
+      <output id="opacity-v">90%</output>
+    </div>
+    <div class="row">
+      <label for="basemap">Basemap</label>
+      <select id="basemap">
+        <option value="sat">Satellite (Esri)</option>
+        <option value="osm">OpenStreetMap</option>
+        <option value="light">Light grey (Esri)</option>
+      </select>
+    </div>
+    <label class="check"><input type="checkbox" id="labels" checked> Place labels on top</label>
+    <label class="check"><input type="checkbox" id="show" checked> Show data overlay <kbd>H</kbd></label>
+    <button id="download" class="btn small">Download overlay PNG</button>
+  </div>
+</aside>
+
+<main id="mapwrap">
+  <div id="map"></div>
+  <div id="readout" class="readout"><span class="muted">Hover over the map</span></div>
+  <div id="status" class="status" hidden></div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="/app.js"></script>
+</body>
+</html>

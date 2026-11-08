@@ -1,0 +1,13 @@
+# Downloaded embeddings (fetch with: python prepare.py)
+data/
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/
