@@ -124,7 +124,10 @@ tessera_io.py   minimal reader for the TESSERA store
 static/         index.html, app.js, style.css
 ```
 
-## Data and credits
+## Licence, data and credits
+
+- Code: [MIT](LICENSE). The licence covers this repository's code only, not the
+  embeddings you download with it.
 
 - Embeddings: **TESSERA**. *TESSERA: Temporal Embeddings of Surface Spectra
   for Earth Representation and Analysis*,
